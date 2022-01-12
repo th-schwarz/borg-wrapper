@@ -1,6 +1,6 @@
 # borg-wrapper
 
-A simple wrapper to [BorgBackup](https://borgbackup.readthedocs.io/en/stable/), hereinafter referred to as borg. The project is very flexible to customize, as it has few settings for different borg repository. Borg-wrapper automatically generates data for monitoring during backup, which is used by the bundled munin plugin.
+It's a very simple wrapper to [BorgBackup](https://borgbackup.readthedocs.io/en/stable/), short borg. The project is very flexible to customize, as it has few settings for different borg repository. Borg-wrapper automatically generates data for monitoring during backup, which is used by the bundled munin plugin.
 
 Side note: I started the project for two reasons. I wanted to learn bash scripting and I needed a munin plugin for borg!
 
