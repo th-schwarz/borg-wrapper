@@ -1,0 +1,148 @@
+#!/bin/bash
+set -o nounset
+set -o errexit
+
+#DIR_CONF=/etc/borg-wrapper
+DEBUG=false
+BORG_PARAMS=
+
+function usage {
+  echo "This is a very simple wrapper to borg."
+  echo "borg-wrapper CONFIG-NAME COMMAND [BORG-PARAMS] [OPTION]"
+  echo "CONIG_NAME: The name of the repository configuration."
+  echo "OPTION:"
+  echo "  -d       Print some debug info."
+  echo "COMMAND:"
+  echo "  backup   Start the backup of the named configuration, e.g."
+  echo "           - borg-wrapper vmail backup"
+  echo "  info     Print infos of a repo or a backup, if specified."
+  echo "           Archive filters can be use, eg. "
+  echo "           - borg-wrapper vmail info \"--last 1\""
+  echo "           - borg-wrapper vmail info \"vmail-2021-10-31_16:40\""
+  echo "  list     List all backups of a repo."
+  echo "  mount    Mount a borg backup, which can be selected from a list."
+  echo "  umount   Unmount a borg mount point."
+  exit 0
+}
+
+function backup {
+   # trigger the backup
+   [ -z "${BACKUP_CMD}" ] && echo "Missing config BACKUP_CMD!" && exit 10;
+   _begin_date=$(date +%s)
+   eval "${BACKUP_CMD}"
+   
+   # write data for monitoring
+   _end_date=$(date +%s)
+   _duration=$(expr $_end_date - $_begin_date)
+   _now=$(date)
+   echo "${_now},${_duration}" > "${DIR_MONITORING}/${CONFIG}"
+}
+
+function list {
+    borg list
+}
+
+function info {
+    _temp=""
+    if [ ! -z "${BORG_PARAMS}" ] ; then
+       if [[ $BORG_PARAMS == -* ]] ; then
+          _temp="${BORG_PARAMS}" 
+       else
+          # get repo info
+          _temp="${BORG_REPO}::${BORG_PARAMS}"
+       fi
+   fi
+   borg info ${_temp}
+}
+
+function mount {
+    mountpoint -q $DIR_MOUNT && echo "${DIR_MOUNT} already mounted!" && exit 10
+    _items=()
+    _idx=1
+    # fetch the backup items of a repo
+    for _item in $(borg list --short | awk '{printf "%s\n", $1}') ; do
+        _items[_idx]="$_item"
+       ((_idx++))
+    done
+	# list the backup items of a repo
+	for _key in "${!_items[@]}"; do
+        printf "%2d) %s\n" "$_key" "${_items[$_key]}"
+	done
+	read -p "Select a backup: " _input
+	[ ! -v '_items[$_input]' ] && echo "Wrong selection!" && exit 10
+	_selected=${_items[$_input]}
+	echo "Selected: ${_selected}"
+	borg mount $BORG_REPO::${_selected} ${DIR_MOUNT}
+	if [ $? -eq 0 ]; then
+	   echo "${_selected} successful mounted at ${DIR_MOUNT}"
+	else
+	   echo "Mount failed!"
+	fi
+}
+
+function umount {
+    ! mountpoint -q $DIR_MOUNT && echo "${DIR_MOUNT} isn't mounted!" && exit 10
+    borg umount ${DIR_MOUNT}
+}
+
+[[ $# -lt 1 ]] && usage && exit 0
+
+DIR=$(dirname -- "$(readlink -f -- "$0")")
+# loading the name of the config directory
+source "${DIR}/borg-wrapper-conf"
+
+# read the basic config first!
+BASE_CONF="${DIR_CONF}/conf"
+[ ! -f "${BASE_CONF}" ] && echo "Missing base configuration: ${BASE_CONF}"
+source "${BASE_CONF}"
+
+unset CONFIG
+unset CMD
+unset BACKUP
+
+## parsing the arguments
+_cnt=1
+for ((i = 1; i <= $#; i++ )); do
+  arg=${!i}
+  #printf '(%i) %s\n' $_cnt "Arg $i: ${arg}"
+  [ "$arg" == "-d" ] && DEBUG=true && continue;
+  [ "$arg" == "umount" ] && CMD="${arg}" && continue;
+  [ $_cnt -eq 1 ] && CONFIG="${arg}" && ((_cnt++)) && continue;
+  [ $_cnt -eq 2 ] && CMD="${arg}" && ((_cnt++)) && continue;
+  [ $_cnt -eq 3 ] && BORG_PARAMS="${arg}" && ((_cnt++)) && continue;
+done
+
+if [ "$DEBUG" = true ]; then
+   echo "base-wrapper parameters:"
+   echo "  base config:          $BASE_CONF"
+   echo "  monitoring data:      $DIR_MONITORING"
+   echo "  mount:                $DIR_MOUNT"
+fi
+#[ "${CONFIG:-}" ] || echo "No nonfig, no command. Nothing to do!" && exit 0
+
+## check settings & read the config
+REPO_CONF="${DIR_CONF}/conf-${CONFIG}"
+[ ! -f "${REPO_CONF}" ] && echo "Missing repo configuration: ${REPO_CONF}" && exit 10;
+source "${REPO_CONF}"
+[ ! -d "$DIR_MONITORING" ] && mkdir -p "$DIR_MONITORING" && echo "Created missing directory: $DIR_MONITORING"
+
+if [ "$DEBUG" = true ]; then
+   echo "repo parameters:"
+   echo "  repo config:          $REPO_CONF"
+   echo "  repo:                 $BORG_REPO"
+   echo "  command:              $CMD"
+   echo "  mount:                $DIR_MOUNT"
+   #echo "  backup cmd:           $BACKUP_CMD"
+fi
+
+## process
+case $CMD in
+   list) list;;
+   info) info;;
+   backup) backup;;
+   mount) mount;;
+   umount) umount;;
+   *) echo "Unknown borg command: ${CMD}" && exit 10;;
+esac
+
+logger -t borg-wrapper "successful processed [$CONFIG] -> $CMD"

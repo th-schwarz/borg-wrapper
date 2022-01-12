@@ -1,0 +1,70 @@
+#!/bin/bash
+set -o nounset
+set -o errexit
+
+DIR=$(dirname -- "$(readlink -f -- "$0")")
+# loading the name of the config directory
+source "${DIR}/borg-wrapper-conf"
+BASE_CONF="${DIR_CONF}/conf"
+source "${BASE_CONF}"
+MUNIN_CONFIG=false
+SCRIPT="ls -A ${DIR_MONITORING}/*"
+
+function run {
+  if [ "$MUNIN_CONFIG" = true ]; then
+          echo 'graph_title Borg backups - run'
+          echo 'graph_args --base 1000 -l 0'
+          echo 'graph_vlabel hours ago'
+          echo 'graph_category backup'
+  fi
+  WARNING=25
+  CRITICAL=30  
+  DATE_VAL=$(date +"%s")
+  for _file in $(${SCRIPT}) ; do
+     _entry=$(<"$_file")
+     _name="$(basename -- $_file)"
+     _raw_date=`echo "$_entry" | awk -F "," '{print $1}'`
+     _expire_sec=$(echo "${_raw_date}" | xargs -I{} date -d {} +%s)
+     _diff_sec=$((DATE_VAL-_expire_sec))
+     _expire_h=`echo "scale=2; $_diff_sec/60/60" | bc | awk '{printf "%0.2f", $1}'`
+     if [ "$MUNIN_CONFIG" = true ]; then
+        echo "_$_name.label $_name"
+        echo "_$_name.warning :$WARNING"
+        echo "_$_name.critical :$CRITICAL"
+     else
+        echo "_$_name.value $_expire_h"
+     fi
+  done
+}
+
+function duration {
+  if [ "$MUNIN_CONFIG" = true ]; then
+          echo 'graph_title Borg backups - duration'
+          echo 'graph_args --base 1000 -l 0'
+          echo 'graph_vlabel duration in minutes'
+          echo 'graph_category backup'
+  fi	
+  for _file in $(${SCRIPT}) ; do
+     _entry=$(<"$_file")
+     _name="$(basename -- $_file)"
+     _duration=`echo "$_entry" | awk -F "," '{print $2}'`
+     _duration_h=`echo "scale=2; $_duration/60" | bc | awk '{printf "%0.2f", $1}'`
+     if [ "$MUNIN_CONFIG" = true ]; then
+        echo "_$_name.label $_name"
+     else
+        echo "_$_name.value $_duration_h"
+     fi
+  done
+}
+
+if [ $# == 1 ] && [ "$1" = "config" ]; then
+   MUNIN_CONFIG=true
+fi
+
+CMD=${0##*borg-wrapper-munin}
+if [ "$CMD" = "-duration" ]; then
+   duration
+else
+   run
+fi
+exit 0
