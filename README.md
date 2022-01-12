@@ -6,6 +6,8 @@ Side note: I started the project for two reasons. I wanted to learn bash scripti
 
 It is important to understand borg in order to use the borg-wrapper correctly!!!
 
+The state of the project is beta! It runs stable on the author's server, but wasn't tested on other servers yet.
+
 ## Disclaimer
 
 I'm not responsible for any data loss, hardware damage or broken keyboards. This guide comes without any warranty!
