@@ -83,6 +83,7 @@ function mount {
 function umount {
     ! mountpoint -q $DIR_MOUNT && echo "${DIR_MOUNT} isn't mounted!" && exit 10
     borg umount ${DIR_MOUNT}
+    echo "Successful umounted: ${DIR_MOUNT}"
 }
 
 [[ $# -lt 1 ]] && usage && exit 0
