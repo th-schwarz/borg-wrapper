@@ -2,7 +2,6 @@
 set -o nounset
 set -o errexit
 
-#DIR_CONF=/etc/borg-wrapper
 DEBUG=false
 BORG_PARAMS=
 
