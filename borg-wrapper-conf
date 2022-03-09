@@ -1,1 +1,12 @@
 DIR_CONF="/etc/borg-wrapper"
+
+# read the basic config first!
+BASE_CONF="${DIR_CONF}/conf"
+[ ! -f "${BASE_CONF}" ] && echo "Missing base configuration: ${BASE_CONF}"
+source "${BASE_CONF}"
+
+function repo_conf() {
+	REPO_CONF="${DIR_CONF}/conf-$1"
+	[ ! -f "${REPO_CONF}" ] && echo "Missing repo configuration: ${REPO_CONF}" && exit 10;
+	source "${REPO_CONF}"
+}

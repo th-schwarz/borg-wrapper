@@ -91,11 +91,6 @@ DIR=$(dirname -- "$(readlink -f -- "$0")")
 # loading the name of the config directory
 source "${DIR}/borg-wrapper-conf"
 
-# read the basic config first!
-BASE_CONF="${DIR_CONF}/conf"
-[ ! -f "${BASE_CONF}" ] && echo "Missing base configuration: ${BASE_CONF}"
-source "${BASE_CONF}"
-
 unset CONFIG
 unset CMD
 unset BACKUP
@@ -121,9 +116,7 @@ fi
 #[ "${CONFIG:-}" ] || echo "No nonfig, no command. Nothing to do!" && exit 0
 
 ## check settings & read the config
-REPO_CONF="${DIR_CONF}/conf-${CONFIG}"
-[ ! -f "${REPO_CONF}" ] && echo "Missing repo configuration: ${REPO_CONF}" && exit 10;
-source "${REPO_CONF}"
+repo_conf "${CONFIG}"
 [ ! -d "$DIR_MONITORING" ] && mkdir -p "$DIR_MONITORING" && echo "Created missing directory: $DIR_MONITORING"
 
 if [ "$DEBUG" = true ]; then
