@@ -41,6 +41,10 @@ export BORG_KEYS_DIR="/etc/borg/keys"
 # settings for borg-wrapper
 DIR_MONITORING=/var/lib/borg-wrapper/monitoring
 DIR_MOUNT=/mnt/tmp
+
+# munin valus could be overwritten in the repository settings
+MUNIN_WARNING=25
+MUNIN_CRITICAL=30
 ```
 
 ### Repository Settings
