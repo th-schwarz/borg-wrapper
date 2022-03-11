@@ -90,4 +90,5 @@ To activate the plugins, the following static links must be set:
 /etc/munin/plugins/borg-wrapper-munin -> /usr/local/sbin/borg-wrapper-munin*
 /etc/munin/plugins/borg-wrapper-munin-duration -> /usr/local/sbin/borg-wrapper-munin*
 ```
-![munin-plugin](https://user-images.githubusercontent.com/1237847/149314814-f794a6bf-6129-4527-905b-320b7f1147d2.png)
+
+![borg-wrapper_screenshot](https://user-images.githubusercontent.com/1237847/157925469-6c4a8052-ac30-4362-bb47-d9acc150b45e.png)
