@@ -26,7 +26,7 @@ function usage {
 
 function backup {
    # trigger the backup
-   [ -z "${BACKUP_CMD}" ] && echo "Missing config BACKUP_CMD!" && exit 10;
+   [[ -z $BACKUP_CMD ]] && echo "Missing config BACKUP_CMD!" && exit 10;
    _begin_date=$(date +%s)
    eval "${BACKUP_CMD}"
    
@@ -43,7 +43,7 @@ function list {
 
 function info {
     _temp=""
-    if [ ! -z "${BORG_PARAMS}" ] ; then
+    if [[ ! -z $BORG_PARAMS ]] ; then
        if [[ $BORG_PARAMS == -* ]] ; then
           _temp="${BORG_PARAMS}" 
        else
@@ -100,8 +100,8 @@ _cnt=1
 for ((i = 1; i <= $#; i++ )); do
   arg=${!i}
   #printf '(%i) %s\n' $_cnt "Arg $i: ${arg}"
-  [ "$arg" == "-d" ] && DEBUG=true && continue;
-  [ "$arg" == "umount" ] && CMD="${arg}" && continue;
+  [[ $arg == "-d" ]] && DEBUG=true && continue;
+  [[ $arg == "umount" ]] && CMD="${arg}" && continue;
   [ $_cnt -eq 1 ] && CONFIG="${arg}" && ((_cnt++)) && continue;
   [ $_cnt -eq 2 ] && CMD="${arg}" && ((_cnt++)) && continue;
   [ $_cnt -eq 3 ] && BORG_PARAMS="${arg}" && ((_cnt++)) && continue;
@@ -119,7 +119,7 @@ fi
 repo_conf "${CONFIG}"
 [ ! -d "$DIR_MONITORING" ] && mkdir -p "$DIR_MONITORING" && echo "Created missing directory: $DIR_MONITORING"
 
-if [ "$DEBUG" = true ]; then
+if [[ $DEBUG = true ]]; then
    echo "repo parameters:"
    echo "  repo config:          $REPO_CONF"
    echo "  repo:                 $BORG_REPO"
