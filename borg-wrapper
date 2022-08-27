@@ -14,8 +14,11 @@ function usage {
   echo "COMMAND:"
   echo "  backup   Start the backup of the named configuration, e.g."
   echo "           - borg-wrapper vmail backup"
+  echo "  check    Verifies the consistency of a repository and the "
+  echo "           corresponding archives of a named configuration, e.g."
+  echo "           - borg-wrapper vmail check"
   echo "  info     Print infos of a repo or a backup, if specified."
-  echo "           Archive filters can be use, eg. "
+  echo "           Archive filters can be use, e.g. "
   echo "           - borg-wrapper vmail info \"--last 1\""
   echo "           - borg-wrapper vmail info \"vmail-2021-10-31_16:40\""
   echo "  list     List all backups of a repo."
@@ -39,6 +42,10 @@ function backup {
 
 function list {
     borg list
+}
+
+function check {
+	borg check
 }
 
 function info {
@@ -132,6 +139,7 @@ fi
 case $CMD in
    list) list;;
    info) info;;
+   check) check;;
    backup) backup;;
    mount) mount;;
    umount) umount;;
