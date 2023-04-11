@@ -33,11 +33,13 @@ function backup {
    _begin_date=$(date +%s)
    eval "${BACKUP_CMD}"
    
-   # write data for monitoring
-   _end_date=$(date +%s)
-   _duration=$(expr $_end_date - $_begin_date)
-   _now=$(date)
-   echo "${_now},${_duration}" > "${DIR_MONITORING}/${CONFIG}"
+   if [ "$DIR_MONITORING" != "n/a" ] ; then
+     # write data for monitoring
+     _end_date=$(date +%s)
+     _duration=$(expr $_end_date - $_begin_date)
+     _now=$(date)
+     echo "${_now},${_duration}" > "${DIR_MONITORING}/${CONFIG}"
+   fi
 }
 
 function list {
@@ -114,6 +116,9 @@ for ((i = 1; i <= $#; i++ )); do
   [ $_cnt -eq 3 ] && BORG_PARAMS="${arg}" && ((_cnt++)) && continue;
 done
 
+if [ $DIR_MONITORING="" ]; then
+   DIR_MONITORING="n/a";
+fi
 if [ "$DEBUG" = true ]; then
    echo "base-wrapper parameters:"
    echo "  base config:          $BASE_CONF"
@@ -124,7 +129,7 @@ fi
 
 ## check settings & read the config
 repo_conf "${CONFIG}"
-[ ! -d "$DIR_MONITORING" ] && mkdir -p "$DIR_MONITORING" && echo "Created missing directory: $DIR_MONITORING"
+[ "$DIR_MONITORING" != "n/a"  ] && [ ! -d "$DIR_MONITORING" ] && mkdir -p "$DIR_MONITORING" && echo "Created missing directory: $DIR_MONITORING"
 
 if [[ $DEBUG = true ]]; then
    echo "repo parameters:"
