@@ -116,7 +116,7 @@ for ((i = 1; i <= $#; i++ )); do
   [ $_cnt -eq 3 ] && BORG_PARAMS="${arg}" && ((_cnt++)) && continue;
 done
 
-if [ $DIR_MONITORING="" ]; then
+if [ "$DIR_MONITORING" = "" ]; then
    DIR_MONITORING="n/a";
 fi
 if [ "$DEBUG" = true ]; then
