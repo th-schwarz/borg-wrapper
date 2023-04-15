@@ -39,7 +39,9 @@ export BORG_SECURITY_DIR="/var/lib/borg/security"
 export BORG_KEYS_DIR="/etc/borg/keys"
 
 # settings for borg-wrapper
+# if it is empty, it's disabled
 DIR_MONITORING=/var/lib/borg-wrapper/monitoring
+
 DIR_MOUNT=/mnt/tmp
 
 # munin valus could be overwritten in the repository settings
