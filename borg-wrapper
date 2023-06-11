@@ -148,7 +148,7 @@ case $CMD in
    backup) backup;;
    mount) mount;;
    umount) umount;;
-   *) echo "Unknown borg command: ${CMD}" && exit 10;;
+   *) echo "Unknown borg-wrapper command: ${CMD}" && exit 10;;
 esac
 
 logger -t borg-wrapper "successful processed [$CONFIG] -> $CMD"
