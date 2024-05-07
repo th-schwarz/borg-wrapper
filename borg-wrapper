@@ -37,7 +37,7 @@ function backup {
      # write data for monitoring
      _end_date=$(date +%s)
      _duration=$(expr $_end_date - $_begin_date)
-     _now=$(date)
+     _now=$(date '+%F %T')
      echo "${_now},${_duration}" > "${DIR_MONITORING}/${CONFIG}"
    fi
 }
