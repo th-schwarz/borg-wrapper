@@ -70,17 +70,17 @@ is_mountpoint() {
 
    if [ ! -d "$dir" ]; then
       echo "$dir is not a directory"
-      return 1
+      exit 1
    fi
 
    if command -v findmnt >/dev/null 2>&1; then
       findmnt -rn -o TARGET | grep -qx "$dir"
-      return $?
+      exit $?
    fi
 
    # methode for MacOS or if findmnt not available
    mount | grep -E "( on $dir | $dir on )" >/dev/null 2>&1
-   return $?
+   exit $?
 }
 
 mount() {
