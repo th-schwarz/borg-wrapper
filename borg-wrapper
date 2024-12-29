@@ -4,6 +4,7 @@ set -o errexit
 
 DEBUG=false
 BORG_PARAMS=
+DIR=$(dirname -- "$(readlink -f -- "$0")")
 
 usage() {
    echo "This is a very simple wrapper to borg."
@@ -84,17 +85,22 @@ is_mountpoint() {
 
 mount() {
    is_mountpoint && echo "${DIR_MOUNT} already mounted!" && exit 10
-   _items=()
-   _idx=1
+   local _items=()
+   local _idx=1
    # fetch the backup items of a repo
-   for _item in $(borg list --short | awk '{printf "%s\n", $1}'); do
-      _items[_idx]="$_item"
-      ((_idx++))
-   done
+   borg list --short "$BORG_REPO" | awk '{printf "%s\n", $1}' > "$DIR"/backup_list.txt &
+   local pid=$!
+   wait $pid
+
    # list the backup items of a repo
-   for _key in "${!_items[@]}"; do
-      printf "%2d) %s\n" "$_key" "${_items[$_key]}"
-   done
+   while read -r _item; do
+      _items[_idx]="$_item"
+      echo "$_idx:  $_item"
+      ((_idx++))
+   done <"$DIR"/backup_list.txt
+
+   # Clean up the temporary file
+   rm "$DIR"/backup_list.txt
    read -p "Select a backup: " _input
    [ ! -v '_items[$_input]' ] && echo "Wrong selection!" && exit 10
    _selected=${_items[$_input]}
@@ -115,7 +121,6 @@ umount() {
 
 [[ $# -lt 1 ]] && usage && exit 0
 
-DIR=$(dirname -- "$(readlink -f -- "$0")")
 # loading the name of the config directory
 source "${DIR}/borg-wrapper-conf"
 
