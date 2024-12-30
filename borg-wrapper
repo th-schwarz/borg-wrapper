@@ -73,6 +73,8 @@ is_mountpoint() {
       return 1
    fi
 
+   #mount | grep -q "$dir" && return 0 || return 1
+   
    if command -v findmnt >/dev/null 2>&1; then
       findmnt -rn -o TARGET | grep -q "$dir" && return 0 || return 1
    else
@@ -83,10 +85,8 @@ is_mountpoint() {
 }
 
 mount() {
-   if is_mountpoint; then
-     echo "${DIR_MOUNT} already mounted!" 
-     exit 10
-   fi
+   is_mountpoint && echo "${DIR_MOUNT} already mounted!" && exit 10
+
    local _items=()
    local _idx=1
    
