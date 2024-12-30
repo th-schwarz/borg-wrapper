@@ -70,28 +70,31 @@ is_mountpoint() {
 
    if [ ! -d "$dir" ]; then
       echo "$dir is not a directory"
-      exit 1
+      return 1
    fi
 
    if command -v findmnt >/dev/null 2>&1; then
-      findmnt -rn -o TARGET | grep -qx "$dir"
-      exit $?
+      findmnt -rn -o TARGET | grep -q "$dir" && return 0 || return 1
+   else
+     # methode for MacOS or if findmnt not available
+     mount | grep -E "( on $dir | $dir on )" >/dev/null 2>&1
+     return $?
    fi
-
-   # methode for MacOS or if findmnt not available
-   mount | grep -E "( on $dir | $dir on )" >/dev/null 2>&1
-   exit $?
 }
 
 mount() {
-   is_mountpoint && echo "${DIR_MOUNT} already mounted!" && exit 10
+   if is_mountpoint; then
+     echo "${DIR_MOUNT} already mounted!" 
+     exit 10
+   fi
    local _items=()
    local _idx=1
+   
    # fetch the backup items of a repo
    borg list --short "$BORG_REPO" | awk '{printf "%s\n", $1}' > "$DIR"/backup_list.txt &
    local pid=$!
    wait $pid
-
+   
    # list the backup items of a repo
    while read -r _item; do
       _items[_idx]="$_item"
